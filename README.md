@@ -1,2 +1,2 @@
 # LinFit
-Naive and easy to understand Python script that calculates a linear-fit (with y-uncertainties) for a provided list of values.
+Naive and easy to understand Python script that calculates a linear-fit (with y-uncertainties) for a provided list of values. It's based on the instructions provided by the experiment-manual from the course [physik261](https://www.physik-astro.uni-bonn.de/home?set_language=en) of the Department of Physics and Astronomy at the [Rheinische Friedrich-Wilhelms-Universität Bonn](https://www.uni-bonn.de).
