@@ -1,0 +1,9 @@
+# x y yErrors <-- In this order; seperated by one space; points as comma
+0 20.8 0.5
+30 20.9
+60 20.9
+90 20.9
+120 20.9
+150 21
+180 21
+210 21.1
