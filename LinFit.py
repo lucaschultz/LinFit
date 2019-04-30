@@ -40,15 +40,32 @@ def listifyUncertainties(error, samplesize):
         return errors
 
 
+def weighedDeviation(errors):
+    '''Return weighed standard deviation as float.'''
+
+    total = 0
+    for value in errors:
+        total += (1 / (value**2))
+
+    return float(len(errors) / total)
+
+
+def weighedAverageDeviation(errors):
+    '''Return weighed standard deviation as float.'''
+
+    total = 0
+    for value in errors:
+        total += (1 / (value**2))
+
+    return m.sqrt(1 / total)
+
+
 def normalAverage(values, errors):
     '''Return the non weighted average and it`s uncertainty as floats in a dictonary.'''
     samplesize = len(values)
 
     # Lets calculate the uncertainty.
-    total = 0
-    for value in errors:
-        total += value
-    error = total / samplesize
+    error = errors[0] / samplesize
 
     # And now for the main part:
     total = 0
@@ -72,21 +89,17 @@ def weightedAverage(values, errors):
     if containsZeroes(errors) or allTheSame(errors):
         return normalAverage(values, errors)
 
-    # Since the derivation of the weighted average gets real messy real fast ...
-    # ... we approximate it with the uncertainty of the non-weighted average.
-    total = 0
-    for value in errors:
-        total += value
-    error = total / samplesize
+    # use the weighed deviation as uncertainty
+    error = weighedAverageDeviation(errors)
 
     total = 0
     for n in range(samplesize):
-        weighted = values[n] * (1 / (errors[n] / samplesize)**2)
+        weighted = values[n] * (1 / (errors[n]**2))
         total += weighted
 
     divideBy = 0
     for n in range(samplesize):
-        divideBy += (1 / (errors[n] / samplesize)**2)
+        divideBy += (1 / (errors[n]**2))
 
     # We want to return a dictonary ... cause you know its two values.
     result = {'average': float(total / divideBy), 'uncertainty': float(error)}
@@ -104,8 +117,6 @@ def squaredAverage(values, errors):
     for n in range(samplesize):
         squaredValues.append(values[n]**2)
 
-    # Oh in case you've wondered: We just use the yerrors to weigh ...
-    # ... our average because the Praktikumsheft says so!
     return weightedAverage(squaredValues, errors)
 
 
@@ -125,8 +136,6 @@ def xyAverage(xvalues, yvalues, yerrors):
     for n in range(samplesize):
         values.append(xvalues[n] * yvalues[n])
 
-    # Oh in case you've wondered: We just use the yerrors to weigh ...
-    # ... our average because the Praktikumsheft says so!
     return weightedAverage(values, yerrors)
 
 
@@ -137,16 +146,6 @@ def averageSquared(uncertaintyDictonary):
               'uncertainty': 2 * uncertaintyDictonary['average'] * uncertaintyDictonary['uncertainty']}
 
     return result
-
-
-def weighedDeviation(errors):
-    '''Return weighed standard deviation as float.'''
-
-    total = 0
-    for value in errors:
-        total += (1 / (value**2))
-
-    return float(len(errors) / total)
 
 
 def slope(xvalues, yvalues, yerrors):
@@ -164,8 +163,8 @@ def slope(xvalues, yvalues, yerrors):
     else:
         error = weighedDeviation(yerrors)**2
 
-    samplesize = len(xvalues)
-    uncertainty = error / (float(samplesize) * (xSquaredAverage - xAverageSquared))
+    samplesize = float(len(xvalues))
+    uncertainty = error / (samplesize * (xSquaredAverage - xAverageSquared))
 
     return {'result': resultingSlope, 'uncertainty': uncertainty}
 
@@ -245,6 +244,16 @@ def printLinearFit(xvalues, yvalues, yerrors, precision=3, presentationType='f',
                 print(template.format(key, value['result'], value['uncertainty']), file=textFile)
 
 
+def isValue(input):
+    '''Return input as float if it is a number, return None else'''
+
+    try:
+        number = float(input)
+        return number
+    except:
+        return None
+
+
 def readFromFile(path):
     '''Return lists of values from provided file.'''
 
@@ -259,13 +268,13 @@ def readFromFile(path):
     else:
         try:  # If a list is provided.
             test = data[1][2]
-            yerrors = [float(element[2]) for element in data]
+            yerrors = [isValue(element[2]) for element in data]
         except:  # if only one value is provided.
-            yerrors = listifyUncertainties(float(data[0][2]), len(data))
+            yerrors = listifyUncertainties(isValue(data[0][2]), len(data))
 
     # populate the x and y values
-    xvalues = [float(element[0]) for element in data]
-    yvalues = [float(element[1]) for element in data]
+    xvalues = [isValue(element[0]) for element in data]
+    yvalues = [isValue(element[1]) for element in data]
 
     if yerrors:
         return xvalues, yvalues, yerrors
